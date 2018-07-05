@@ -171,9 +171,13 @@ cats = {
 
 }
 
-if args.rebinning_scheme == 'v2-wh-hf-dnn':
+if args.rebinning_scheme in ['v2-wh-hf-dnn','v2-whznnh-hf-dnn','v2-whznnh-hf-dnn-droplowpt']:
     cats['Wen'] = [ (1, 'WenHighPt'), (3,'wlfWen'), (6,'whfWenLow'), (7,'ttWen') ]
     cats['Wmn'] = [ (1, 'WmnHighPt'), (3,'wlfWmn'), (6,'whfWmnLow'), (7,'ttWmn') ]
+
+if args.rebinning_scheme in ['v2-whznnh-hf-dnn-droplowpt']:
+    cats['Zee'] = [ (1, 'SR_high_Zee'), (3, 'Zlf_high_Zee'), (5, 'Zhf_high_Zee'), (7,'ttbar_high_Zee') ]
+    cats['Zmm'] = [ (1, 'SR_high_Zuu'), (3, 'Zlf_high_Zuu'), (5, 'Zhf_high_Zuu'), (7,'ttbar_high_Zuu') ]
 
 for chn in chns:
   cb.AddObservations( ['*'], ['vhbb'], ['13TeV'], [chn], cats[chn])
@@ -228,7 +232,7 @@ elif args.rebinning_scheme == 'v2': # all channels: 1bin in TT/LF, 2bins in HF
     print 'binning in CR for HF fitting variable:',binning,'for all the channels'
     cb.cp().bin_id([5,6]).VariableRebin(binning)
     
-elif args.rebinning_scheme == 'v2-wh-hf-dnn': # all channels: 1bin in TT/LF, 2bins in HF
+elif args.rebinning_scheme == 'v2-wh-hf-dnn': # all channels: 1bin in TT/LF, 2bins in HF + DNN for WH HF
     binning=np.linspace(0.0,1.0,num=2)
     print 'binning in CR for LF,TT fitting variable:',binning,'for all the channels'
     cb.cp().bin_id([3,4,7,8]).VariableRebin(binning)
@@ -239,7 +243,7 @@ elif args.rebinning_scheme == 'v2-wh-hf-dnn': # all channels: 1bin in TT/LF, 2bi
     print 'binning in CR for HF fitting variable:',binning,'for all the channels'
     cb.cp().channel(['Wmn','Wen']).bin_id([5,6]).VariableRebin(binning) 
    
-elif args.rebinning_scheme == 'v2-whznnh-hf-dnn': # all channels: 1bin in TT/LF, 2bins in HF
+elif args.rebinning_scheme in ['v2-whznnh-hf-dnn','v2-whznnh-hf-dnn-droplowpt']: # all channels: 1bin in TT/LF, 2bins in HF + DNN for WH and ZH HF
     binning=np.linspace(0.0,1.0,num=2)
     print 'binning in CR for LF,TT fitting variable:',binning,'for all the channels'
     cb.cp().bin_id([3,4,7,8]).VariableRebin(binning)
