@@ -98,7 +98,9 @@ significance_postfit_cr_sr = True
 
 # DIAGNOSTIC
 diagnostic_postfit_cr = True
-dump_diagnostic_overconstraints_cr = True
+diagnostic_postfit_cr_sr = True
+diagnostic_postfit_cr_sr_blind = True
+dump_diagnostic_overconstraints_cr_sr_blind = True
 # # # # # # # # diagnostic_postfit_unblinding = True
 # # # # # # # # dump_diagnostic_overconstraints_unblinding = True
 
@@ -108,8 +110,6 @@ copy_to_web = True
 
 
 # NOT USED / TO BE TESTED
-# diagnostic_postfit_cr_sr_blind = True
-# dump_diagnostic_overconstraints_cr_sr = True
 
 ###############################################
 ######### END OF STEERABLE PARAMETERS #########
@@ -252,6 +252,7 @@ if 'diagnostic_postfit_cr' in globals() and  diagnostic_postfit_cr:
                                           '-d output/'+output_folder+''+year+'/'+channel+'/ws_masked.root --there'
         execute(command,usebatch,'output/'+output_folder+''+year,'diagnostic_postfit_cr_'+bash_script_name.replace('CHANNEL',channel),'8nh',lxbatch_jobs_submitted)
 
+
 if 'diagnostic_postfit_cr_sr_blind' in globals() and  diagnostic_postfit_cr_sr_blind:
     stamp()
     for channel in channels_loop.split(','):
@@ -274,17 +275,17 @@ if 'dump_diagnostic_overconstraints_cr' in globals() and  dump_diagnostic_overco
                                                   'output/'+output_folder+''+year+'/'+channel+'_diffNuisances.htm'
         execute(command,False,'output/'+output_folder+''+year,'dump_diagnostic_postfit_cr_'+bash_script_name.replace('CHANNEL',channel),queue,lxbatch_jobs_submitted)
 
-if 'dump_diagnostic_overconstraints_cr_sr' in globals() and  dump_diagnostic_overconstraints_cr_sr:
+if 'dump_diagnostic_overconstraints_cr_sr_blind' in globals() and  dump_diagnostic_overconstraints_cr_sr_blind:
     stamp()
     for channel in channels_loop.split(','):
         print 'Dump over-constrained nuisances','channel',channel;sys.stdout.flush()
         f = ROOT.TFile('output/'+output_folder+''+year+'/'+channel+'/fitDiagnostics.Test.root')
         fit_b = f.Get('fit_b')
         'significance_postfit_crsr_'+bash_script_name.replace('CHANNEL',channel),
-        fit_b.Print() 
+        fit_s.Print() 
         command = 'python diffNuisances.py -f html output/'+output_folder+''+year+'/'+channel+'/fitDiagnostics.Test.root > '\
                                                   'output/'+output_folder+''+year+'/'+channel+'_diffNuisances.htm'
-        execute(command,False,'output/'+output_folder+''+year,'dump_diagnostic_postfit_crsr_'+bash_script_name.replace('CHANNEL',channel),queue,lxbatch_jobs_submitted)
+        execute(command,False,'output/'+output_folder+''+year,'dump_diagnostic_overconstraints_cr_sr_blind_'+bash_script_name.replace('CHANNEL',channel),queue,lxbatch_jobs_submitted)
 
 
 if 'copy_to_web' in globals() and copy_to_web:
