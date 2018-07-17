@@ -93,6 +93,7 @@ build_asimov_dataset = True
 significance_without_systematics = True
 significance_prefit = True
 significance_postfit_cr = True
+significance_postfit_cr_sr = True
 # # # # # # # # significance_unblind = True
 
 # DIAGNOSTIC
@@ -213,6 +214,14 @@ if 'significance_postfit_cr' in globals() and  significance_postfit_cr:
         command = 'combineTool.py -M Significance --cminDefaultMinimizerStrategy 0 --cminPreFit=1 --significance -d output/'+output_folder+''+year+'/'+channel+'/ws_masked.root '\
                                                       '--there --toysFrequentist -t -1 --toysFile higgsCombine.Test.GenerateOnly.mH120.123456.root'
         execute(command,usebatch,'output/'+output_folder+''+year,'significance_postfit_cr_'+bash_script_name.replace('CHANNEL',channel),'8nh',lxbatch_jobs_submitted)
+
+if 'significance_postfit_cr_sr' in globals() and  significance_postfit_cr_sr:
+    stamp()
+    for channel in channels_loop.split(','):
+        print 'Post-fit CR-only significance (run the maximum likelihood fit)','channel',channel;sys.stdout.flush()
+        command = 'combineTool.py -M Significance --cminDefaultMinimizerStrategy 0 --cminPreFit=1 --significance -d output/'+output_folder+''+year+'/'+channel+'/ws.root '\
+                                                      '--there --toysFrequentist  higgsCombine.Test.GenerateOnly.mH120.123456.root'
+        execute(command,usebatch,'output/'+output_folder+''+year,'significance_postfit_cr_sr'+bash_script_name.replace('CHANNEL',channel),'8nh',lxbatch_jobs_submitted)
 
 if 'significance_unblind' in globals() and  significance_unblind:
     stamp()
