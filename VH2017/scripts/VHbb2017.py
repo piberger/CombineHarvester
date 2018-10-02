@@ -168,7 +168,8 @@ if not args.doVV:
     'Wmn' : ['s_Top','TT','Wj0b','Wj1b','Wj2b','VVHF','VVLF','Zj0b','Zj1b','Zj2b'],
     'Zmm' : ['s_Top','TT','VVLF','VVHF','Zj0b','Zj1b','Zj2b'],
     'Zee' : ['s_Top','TT','VVLF','VVHF','Zj0b','Zj1b','Zj2b'],
-    'Znn' : ['s_Top','TT','Wj0b','Wj1b','Wj2b','VVHF','VVLF','Zj0b','Zj1b','Zj2b','QCD']
+#    'Znn' : ['s_Top','TT','Wj0b','Wj1b','Wj2b','VVHF','VVLF','Zj0b','Zj1b','Zj2b','QCD']
+    'Znn' : ['s_Top','TT','Wj0b','Wj1b','Wj2b','VVHF','VVLF','Zj0b','Zj1b','Zj2b']
   }
 else:
   bkg_procs = {
@@ -238,9 +239,29 @@ if not args.mjj:
     
     }
     
+    if args.Zmm_fwk == 'Xbb':
+        cats['Zmm'] = [(1, 'Zuu_BDT_highpt'), (2, 'Zuu_BDT_lowpt'), (3, 'Zuu_CRZlight_highpt'), (4,'Zuu_CRZlight_lowpt'),
+                       (5, 'Zuu_CRZb_highpt'), (6, 'Zuu_CRZb_lowpt'), (7,'Zuu_CRttbar_highpt'), (8,'Zuu_CRttbar_highpt')]
+        cats['Zee'] = [(1, 'Zee_BDT_highpt'), (2, 'Zee_BDT_lowpt'), (3, 'Zee_CRZlight_highpt'), (4,'Zee_CRZlight_lowpt'),
+                       (5, 'Zee_CRZb_highpt'), (6, 'Zee_CRZb_lowpt'), (7,'Zee_CRttbar_highpt'), (8,'Zee_CRttbar_highpt')]
+        cats['Znn'] = [(1, 'Znn_13TeV_Signal'), (3, 'Znn_13TeV_Zlight'), (5, 'Znn_13TeV_Zbb'), (7,'Znn_13TeV_TT')]
+    if args.Wen_fwk == 'Xbb':
+        cats['Wen'] = [(1, 'Wen_13TeV_Signal'), (3,'Wen_13TeV_Wlight'), (5,'Wen_13TeV_Wbb_highM'), (6,'Wen_13TeV_Wbb_lowM'), (7,'Wen_13TeV_TT')]
+    if args.Wmn_fwk == 'Xbb':
+        cats['Wmn'] = [(1, 'Wun_13TeV_Signal'), (3,'Wun_13TeV_Wlight'), (5,'Wun_13TeV_Wbb_highM'), (6,'Wun_13TeV_Wbb_lowM'), (7,'Wun_13TeV_TT')]
+
     if args.rebinning_scheme == 'v2-wh-hf-dnn' or args.rebinning_scheme == 'v2-whznnh-hf-dnn':
-        cats['Wen'] = [ (1, 'WenHighPt'), (3,'wlfWen'), (6,'whfWenLow'), (7,'ttWen') ]
-        cats['Wmn'] = [ (1, 'WmnHighPt'), (3,'wlfWmn'), (6,'whfWmnLow'), (7,'ttWmn') ]
+        if args.Wen_fwk == 'Xbb':
+            #cats['Wen'] = [(1, 'Wen_13TeV_Signal'), (3,'Wen_13TeV_Wlight'), (6,'Wen_13TeV_Wbb_lowM'), (7,'Wen_13TeV_TT')]
+            cats['Wen'] = [(1, 'Wen_13TeV_Signal'), (3,'Wen_13TeV_Wlight'), (6,'Wen_13TeV_Wbb'), (7,'Wen_13TeV_TT')]
+        else:
+            cats['Wen'] = [ (1, 'WenHighPt'), (3,'wlfWen'), (6,'whfWenLow'), (7,'ttWen') ]
+        if args.Wmn_fwk == 'Xbb':
+            #cats['Wmn'] = [(1, 'Wun_13TeV_Signal'), (3,'Wun_13TeV_Wlight'), (6,'Wun_13TeV_Wbb_lowM'), (7,'Wun_13TeV_TT')]
+            cats['Wmn'] = [(1, 'Wun_13TeV_Signal'), (3,'Wun_13TeV_Wlight'), (6,'Wun_13TeV_Wbb'), (7,'Wun_13TeV_TT')]
+        else:
+            cats['Wmn'] = [ (1, 'WmnHighPt'), (3,'wlfWmn'), (6,'whfWmnLow'), (7,'ttWmn') ]
+
 else:
     cats = {
       'Zee' : [
@@ -269,6 +290,8 @@ else:
         (5,'wlfWmn'), (6,'whfWmnLow'), (7,'ttWmn')
       ]
     }
+
+#cb.cp().channel(['Zee','Zmm']).RenameSystematic(cb,'VVHFCMS_vhbb_LHE_weights_scale_muR_VVHFUp','VVHFCMS_LHE_weights_scale_muR_VVHFUp')
 
 for chn in chns:
   cb.AddObservations( ['*'], ['vhbb'], ['13TeV'], [chn], cats[chn])
@@ -413,6 +436,7 @@ if year=='2017':
 if year=='2017':
     cb.cp().ForEachSyst(lambda x: remove_norm_effect(x) if x.name()=='CMS_vhbb_puWeight' else None)
 
+
 if args.doVV:
     cb.FilterSysts(lambda x: x.name() in "CMS_vhbb_VV")
 
@@ -420,15 +444,19 @@ if year=='2017':
     cb.cp().process(['Wj0b']).ForEachProc(lambda x: increase_bin_errors(x))
     cb.cp().channel(['Wen','Wmn']).process(['VVHF','VVLF']).ForEachProc(lambda x: increase_bin_errors(x))
 
+
 cb.cp().channel(['Wen','Wmn','Znn']).process(['Wj0b']).RenameSystematic(cb,'CMS_vhbb_vjetnlodetajjrw_13TeV','CMS_W0b_vhbb_vjetnlodetajjrw_13TeV')
 cb.cp().channel(['Wen','Wmn','Znn']).process(['Wj1b']).RenameSystematic(cb,'CMS_vhbb_vjetnlodetajjrw_13TeV','CMS_W1b_vhbb_vjetnlodetajjrw_13TeV')
 cb.cp().channel(['Wen','Wmn','Znn']).process(['Wj2b']).RenameSystematic(cb,'CMS_vhbb_vjetnlodetajjrw_13TeV','CMS_W2b_vhbb_vjetnlodetajjrw_13TeV')
-cb.cp().channel(['Zee','Zmm','Znn']).process(['Zj0b']).RenameSystematic(cb,'CMS_vhbb_vjetnlodetajjrw_13TeV','CMS_Z0b_vhbb_vjetnlodetajjrw_13TeV')
-cb.cp().channel(['Zee','Zmm','Znn']).process(['Zj1b']).RenameSystematic(cb,'CMS_vhbb_vjetnlodetajjrw_13TeV','CMS_Z1b_vhbb_vjetnlodetajjrw_13TeV')
-cb.cp().channel(['Zee','Zmm','Znn']).process(['Zj2b']).RenameSystematic(cb,'CMS_vhbb_vjetnlodetajjrw_13TeV','CMS_Z2b_vhbb_vjetnlodetajjrw_13TeV')
+cb.cp().channel(['Zee','Zmm','Znn','Wen','Wmn']).process(['Zj0b']).RenameSystematic(cb,'CMS_vhbb_vjetnlodetajjrw_13TeV','CMS_Z0b_vhbb_vjetnlodetajjrw_13TeV')
+cb.cp().channel(['Zee','Zmm','Znn','Wen','Wmn']).process(['Zj1b']).RenameSystematic(cb,'CMS_vhbb_vjetnlodetajjrw_13TeV','CMS_Z1b_vhbb_vjetnlodetajjrw_13TeV')
+cb.cp().channel(['Zee','Zmm','Znn','Wen','Wmn']).process(['Zj2b']).RenameSystematic(cb,'CMS_vhbb_vjetnlodetajjrw_13TeV','CMS_Z2b_vhbb_vjetnlodetajjrw_13TeV')
 cb.cp().signals().RenameSystematic(cb,'CMS_res_j_reg_13TeV','CMS_signal_resolution_13TeV')
 cb.cp().channel(['Wen','Wmn','Znn']).RenameSystematic(cb,'CMS_res_j_reg_13TeV','CMS_NoKinFit_res_j_reg_13TeV')
 cb.cp().channel(['Zee','Zmm']).RenameSystematic(cb,'CMS_res_j_reg_13TeV','CMS_KinFit_res_j_reg_13TeV')
+
+if year=='2017':
+    cb.cp().ForEachSyst(lambda x: remove_norm_effect(x) if 'vhbb_vjetnlodetajjrw_13TeV' in x.name() else None)
 
 
 cb.SetGroup('signal_theory',['pdf_Higgs.*','BR_hbb','QCDscale_ggZH','QCDscale_VH','CMS_vhbb_boost.*','.*LHE_weights.*ZH.*','.*LHE_weights.*WH.*','.*LHE_weights.*ggZH.*'])
@@ -498,3 +526,5 @@ if 'Wen' in chns and 'Wmn' in chns:
 if 'Zee' in chns and 'Zmm' in chns:
   writer.WriteCards("Zll",cb.cp().channel(['Zee','Zmm']))
   writer.WriteCards("Zll_CRonly",cb.cp().bin_id([3,4,5,6,7,8]).channel(['Zee','Zmm']))
+
+print("end:", chns)

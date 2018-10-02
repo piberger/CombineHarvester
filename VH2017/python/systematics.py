@@ -84,11 +84,11 @@ def AddCommonSystematics(cb):
                                                                         (['Zee','Zmm','Znn'],1.03)
                                                                         (['Wen','Wmn'],1.02)) 
   
-  cb.cp().channel(['Wen','Wmn','Zmm','Zee']).process(['VVHF']).AddSyst(cb,
-      'CMS_LHE_weights_scale_muR_VVHF','shape',ch.SystMap()(1.0))
+  ###cb.cp().channel(['Wen','Wmn','Zmm','Zee']).process(['VVHF']).AddSyst(cb,
+  ###    'CMS_LHE_weights_scale_muR_VVHF','shape',ch.SystMap()(1.0))
 
-  cb.cp().channel(['Wen','Wmn','Zmm','Zee']).process(['VVHF']).AddSyst(cb,
-      'CMS_LHE_weights_scale_muF_VVHF','shape',ch.SystMap()(1.0))
+  ###cb.cp().channel(['Wen','Wmn','Zmm','Zee']).process(['VVHF']).AddSyst(cb,
+  ###    'CMS_LHE_weights_scale_muF_VVHF','shape',ch.SystMap()(1.0))
 
   # cb.cp().process(['VVLF']).AddSyst(cb,
      # 'CMS_LHE_weights_scale_muR_VVLF','shape',ch.SystMap()(1.0))
@@ -273,7 +273,6 @@ def AddSystematics2017(cb):
   
   cb.cp().channel(['Wen','Wmn']).process(['Wj0b']).AddSyst(cb,
       'CMS_vhbb_ptwweights_wlf_13TeV','shape',ch.SystMap()(1.0))
-
   cb.cp().channel(['Wen','Wmn']).process(['Wj1b','Wj2b','s_Top']).AddSyst(cb,
       'CMS_vhbb_ptwweights_whf_13TeV','shape',ch.SystMap()(1.0))
 
@@ -284,6 +283,9 @@ def AddSystematics2017(cb):
   #Jet energy scale
   cb.cp().AddSyst(cb,'CMS_res_j_13TeV','shape',ch.SystMap()(1.0))
   cb.cp().AddSyst(cb,'CMS_res_j_reg_13TeV','shape',ch.SystMap()(1.0))
+  
+  ## TEST
+  #cb.cp().AddSyst(cb,'CMS_vhbb_res_j_reg_13TeV','shape',ch.SystMap()(1.0))
  
   # inclusive in pt/eta
   # cb.cp().AddSyst(cb,'CMS_scale_j_13TeV','shape',ch.SystMap()(1.0))
@@ -676,7 +678,6 @@ def AddSystematics2016(cb):
   cb.cp().process(['TT']).AddSyst(cb,'CMS_vhbb_topptreweighting_13TeV_2016','shape',ch.SystMap()(1.0))
 
   cb.cp().channel(['Wen','Wmn']).process(['Wj0b']).AddSyst(cb,'CMS_vhbb_ptwweights_wlf_13TeV_2016','shape',ch.SystMap()(1.0))
-
   cb.cp().channel(['Wen','Wmn']).process(['Wj1b' 'Wj2b' 's_Top']).AddSyst(cb,'CMS_vhbb_ptwweights_whf_13TeV_2016','shape',ch.SystMap()(1.0))
 
 #  cb.cp().AddSyst(cb,
