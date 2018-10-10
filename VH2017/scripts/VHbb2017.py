@@ -252,12 +252,10 @@ if not args.mjj:
 
     if args.rebinning_scheme == 'v2-wh-hf-dnn' or args.rebinning_scheme == 'v2-whznnh-hf-dnn':
         if args.Wen_fwk == 'Xbb':
-            #cats['Wen'] = [(1, 'Wen_13TeV_Signal'), (3,'Wen_13TeV_Wlight'), (6,'Wen_13TeV_Wbb_lowM'), (7,'Wen_13TeV_TT')]
             cats['Wen'] = [(1, 'Wen_13TeV_Signal'), (3,'Wen_13TeV_Wlight'), (6,'Wen_13TeV_Wbb'), (7,'Wen_13TeV_TT')]
         else:
             cats['Wen'] = [ (1, 'WenHighPt'), (3,'wlfWen'), (6,'whfWenLow'), (7,'ttWen') ]
         if args.Wmn_fwk == 'Xbb':
-            #cats['Wmn'] = [(1, 'Wun_13TeV_Signal'), (3,'Wun_13TeV_Wlight'), (6,'Wun_13TeV_Wbb_lowM'), (7,'Wun_13TeV_TT')]
             cats['Wmn'] = [(1, 'Wun_13TeV_Signal'), (3,'Wun_13TeV_Wlight'), (6,'Wun_13TeV_Wbb'), (7,'Wun_13TeV_TT')]
         else:
             cats['Wmn'] = [ (1, 'WmnHighPt'), (3,'wlfWmn'), (6,'whfWmnLow'), (7,'ttWmn') ]
@@ -458,6 +456,9 @@ cb.cp().channel(['Zee','Zmm']).RenameSystematic(cb,'CMS_res_j_reg_13TeV','CMS_Ki
 if year=='2017':
     cb.cp().ForEachSyst(lambda x: remove_norm_effect(x) if 'vhbb_vjetnlodetajjrw_13TeV' in x.name() else None)
 
+#if year=='2017' and all([v=='Xbb' for k,v in input_fwks.items()]):
+#    cb.cp().ForEachSyst(lambda x: remove_norm_effect(x) if 'NoKinFit_res_j_reg' in x.name() else None)
+#    print '\x1b[34mXBB: remove normalization effect for NoKinFit_res_j_reg!\x1b[0m'
 
 cb.SetGroup('signal_theory',['pdf_Higgs.*','BR_hbb','QCDscale_ggZH','QCDscale_VH','CMS_vhbb_boost.*','.*LHE_weights.*ZH.*','.*LHE_weights.*WH.*','.*LHE_weights.*ggZH.*'])
 cb.SetGroup('bkg_theory',['pdf_qqbar','pdf_gg','CMS_vhbb_VV','CMS_vhbb_ST','.*LHE_weights.*TT.*','.*LHE_weights.*VV.*','.*LHE_weights.*Zj0b.*','LHE_weights.*Zj1b.*','LHE_weights.*Zj2b.*','LHE_weights.*Wj0b.*','LHE_weights.*Wj1b.*','LHE_weights.*Wj2b.*','LHE_weights.*s_Top.*','LHE_weights.*QCD.*'])
