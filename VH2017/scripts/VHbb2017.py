@@ -252,7 +252,7 @@ if not args.mjj:
      'Wmn' : [
         (1, 'WmnHighPt'), (3,'wlfWmn'), (5,'whfWmnHigh'), (6,'whfWmnLow'), (7,'ttWmn')
       ]
-    
+
     }
     
     if args.Zmm_fwk == 'Xbb':
@@ -391,7 +391,7 @@ elif args.rebinning_scheme == 'v2': # all channels: 1bin in TT/LF, 2bins in HF
     print 'binning in CR for HF fitting variable:',binning,'for all the channels'
     cb.cp().bin_id([5,6]).VariableRebin(binning)
     
-elif args.rebinning_scheme == 'v2-wh-hf-dnn': # all channels: 1bin in TT/LF, 2bins in HF
+elif args.rebinning_scheme == 'v2-wh-hf-dnn': # all channels: 1bin in TT/LF, 2bins in HF + DNN for WH HF
     binning=np.linspace(0.0,1.0,num=2)
     print 'binning in CR for LF,TT fitting variable:',binning,'for all the channels'
     cb.cp().bin_id([3,4,7,8]).VariableRebin(binning)
@@ -402,7 +402,7 @@ elif args.rebinning_scheme == 'v2-wh-hf-dnn': # all channels: 1bin in TT/LF, 2bi
     print 'binning in CR for HF fitting variable:',binning,'for all the channels'
     cb.cp().channel(['Wmn','Wen']).bin_id([5,6]).VariableRebin(binning) 
    
-elif args.rebinning_scheme == 'v2-whznnh-hf-dnn': # all channels: 1bin in TT/LF, 2bins in HF
+elif args.rebinning_scheme in ['v2-whznnh-hf-dnn','v2-whznnh-hf-dnn-droplowpt']: # all channels: 1bin in TT/LF, 2bins in HF + DNN for WH and ZH HF
     binning=np.linspace(0.0,1.0,num=2)
     print 'binning in CR for LF,TT fitting variable:',binning,'for all the channels'
     cb.cp().bin_id([3,4,7,8]).VariableRebin(binning)

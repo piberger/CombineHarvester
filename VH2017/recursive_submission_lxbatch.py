@@ -12,24 +12,24 @@ def stamp():
 
 def execute(command,usebatch,output_folder,bash_script_name,queue,lxbatch_jobs_submitted,fitdiagnostic=''):
     print(command);sys.stdout.flush()
+    full_bash_script_name = os.getcwd()+'/'+output_folder+'/'+bash_script_name
+    full_log_script_name = full_bash_script_name.replace('.sh','.log')
+    file = open(full_bash_script_name,'w')        
+    file.write('#!/bin/bash\n') 
+    file.write('cd '+os.getcwd()+'\n')
+    file.write('eval `scramv1 runtime -sh`\n') 
+    file.write('ulimit -s unlimited\n') 
+    file.write('echo "'+full_bash_script_name+'"\n')
+    file.write(command+' 2>&1 | tee '+full_log_script_name+' \n')
+    file.write('echo ""\n')
+    file.write('echo "script name:" >> '+full_log_script_name+'\n')
+    file.write('echo "'+full_bash_script_name+'" >> '+full_log_script_name+'\n')
+    file.write('echo "command was:" >> '+full_log_script_name+'\n')
+    file.write('echo "'+command.replace('"','\"')+'" >> '+full_log_script_name+'\n')
+    file.close()
     if not usebatch:
-        os.system(command)
+        os.system('sh '+full_bash_script_name)
     else:
-        full_bash_script_name = os.getcwd()+'/'+output_folder+'/'+bash_script_name
-        full_log_script_name = full_bash_script_name.replace('.sh','.log')
-        file = open(full_bash_script_name,'w')        
-        file.write('#!/bin/bash\n') 
-        file.write('cd '+os.getcwd()+'\n')
-        file.write('eval `scramv1 runtime -sh`\n') 
-        file.write('ulimit -s unlimited\n') 
-        file.write('echo "'+full_bash_script_name+'"\n')
-        file.write(command+' 2>&1 | tee '+full_log_script_name+' \n')
-        file.write('echo ""\n')
-        file.write('echo "script name:" >> '+full_log_script_name+'\n')
-        file.write('echo "'+full_bash_script_name+'" >> '+full_log_script_name+'\n')
-        file.write('echo "command was:" >> '+full_log_script_name+'\n')
-        file.write('echo "'+command.replace('"','\"')+'" >> '+full_log_script_name+'\n')
-        file.close()
         submitted = os.popen('chmod +x '+full_bash_script_name+'; bsub -u pippo123 -C 0 -q '+queue+' '+full_bash_script_name).read();
         os.system('sleep 1')
         if '<' in submitted:
@@ -59,28 +59,32 @@ def check_running(lxbatch_jobs_submitted):
 ###### START OF STEERABLE PARAMETERS #########
 ##############################################
 
-usebatch = True
 queue = '1nh'
+usebatch = True
 # usebatch = False
 
 # FOLDERS 
-output_folder = "test_Jul3" # specify output folder prefix
+# output_folder = "test_Jul4_realunbl" # specify output folder prefix
 # year = "2016" # select 2016 or 2017
 # extra_folder = "--extra_folder 2016_June19_forUnblinding_DNNTransformed" # specify sub-folder for AT shapes
+output_folder = "2017_July23v1" # specify output folder prefix
 year = "2017" # select 2016 or 2017
-extra_folder = "--extra_folder 2017_June19_forUnblinding_DNNPirminTransform" # specify sub-folder for AT shapes
+extra_folder = "--extra_folder 2017_VHbb_July17_VVfixed" # specify sub-folder for AT shapes
 
-rebinning_scheme = 'v2' # '' no rebinning , 'v1', 'v2','v3','v4'
+rebinning_scheme = 'v2-whznnh-hf-dnn' # '' no rebinning , 'v1', 'v2','v3','v4'
 web_folder = '/afs/cern.ch/user/p/perrozzi/www/work/VH/'
 
 # CHANNELS
-# channels = "--channel Znn,Wln,Zll,cmb" # separate channels by comma without space, comment line for all channels
+# channels = "--channel Zmm" # separate channels by comma without space, comment line for all channels
+channels = "--channel Znn,Wln,Zll,cmb" # separate channels by comma without space, comment line for all channels
 # channels = "--channel Zll,Wln,Znn"
-channels = "--channel Wln"
+# channels = "--channel Znn"
+# channels = "--channel Wln"
 # channels = "--channel Zll" # separate channels by comma without space, comment line for all channels
+# channels = "--channel cmb" # separate channels by comma without space, comment line for all channels
 
 # DATACARDS, WS, TOYS
-create_datacards = True
+# create_datacards = True
 # create_masked_ws = True
 # create_unmasked_ws = True
 # build_asimov_dataset = True
@@ -89,18 +93,23 @@ create_datacards = True
 # significance_without_systematics = True
 # significance_prefit = True
 # significance_postfit_cr = True
+# significance_postfit_cr_sr = True
+# significance_unblind = True
 
 # DIAGNOSTIC
-# diagnostic_postfit_cr = True
-# dump_diagnostic_overconstraints_cr = True
+diagnostic_postfit_cr = True
+# diagnostic_postfit_cr_sr = True
 # diagnostic_postfit_cr_sr_blind = True
-# dump_diagnostic_overconstraints_cr_sr = True
+# dump_diagnostic_overconstraints_cr_sr_blind = True
+# diagnostic_postfit_unblinding = True
+# dump_diagnostic_overconstraints_unblinding = True
 
 # COPY TO THE WEB
-# copy_to_web = True
+copy_to_web = True
+
+
 
 # NOT USED / TO BE TESTED
-# diagnostic_postfit_cr_ws = True
 
 ###############################################
 ######### END OF STEERABLE PARAMETERS #########
@@ -113,6 +122,14 @@ bash_script_name = 'CHANNEL_submit_from_'+extra_folder.replace('--extra_folder '
 # print 'This text will appear on screen and also in the logfile'
 
 output_folder = output_folder+'_rebin'+rebinning_scheme
+
+# import hashlib
+# hash_object = hashlib.sha1(output_folder)
+# hex_dig = hash_object.hexdigest()
+# print(hex_dig)
+# output_folder = output_folder+'_'+hex_dig
+# sys.exit(1)
+
 
 channels_loop = channels.replace("--channel ",'');
 if channels_loop == '': channels_loop = '*'
@@ -194,24 +211,48 @@ if 'significance_postfit_cr' in globals() and  significance_postfit_cr:
     stamp()
     for channel in channels_loop.split(','):
         print 'Post-fit CR-only significance (run the maximum likelihood fit)','channel',channel;sys.stdout.flush()
-        command = 'combineTool.py -M Significance --cminDefaultMinimizerStrategy 1 --cminPreFit=1 --significance -d output/'+output_folder+''+year+'/'+channel+'/ws_masked.root '\
+        command = 'combineTool.py -M Significance --cminDefaultMinimizerStrategy 0 --cminPreFit=1 --significance -d output/'+output_folder+''+year+'/'+channel+'/ws_masked.root '\
                                                       '--there --toysFrequentist -t -1 --toysFile higgsCombine.Test.GenerateOnly.mH120.123456.root'
         execute(command,usebatch,'output/'+output_folder+''+year,'significance_postfit_cr_'+bash_script_name.replace('CHANNEL',channel),'8nh',lxbatch_jobs_submitted)
 
-if 'diagnostic_postfit_cr_ws' in globals() and  diagnostic_postfit_cr_ws:
+if 'significance_postfit_cr_sr' in globals() and  significance_postfit_cr_sr:
     stamp()
     for channel in channels_loop.split(','):
         print 'Post-fit CR-only significance (run the maximum likelihood fit)','channel',channel;sys.stdout.flush()
-        command = 'combineTool.py -M FitDiagnostics -m 125 -d output/'+output_folder+''+year+'/'+channel+'/ws_masked.root --there '\
-              '--cminDefaultMinimizerStrategy 0 --setParameters mask_vhbb_Zmm_1_13TeV2017=1,mask_vhbb_Zmm_2_13TeV2017=1,mask_vhbb_Zee_1_13TeV2017=1,mask_vhbb_Zee_2_13TeV2017=1,mask_vhbb_Wen_1_13TeV2017=1,mask_vhbb_Wmn_1_13TeV2017=1,mask_vhbb_Znn_1_13TeV2017=1,r=0 -n .SRMasked --redefineSignalPOIs SF_TT_Wln_2017 --freezeParameters r,CMS_res_j_13TeV'
-        execute(command,usebatch,'output/'+output_folder+''+year,'diagnostic_postfit_cr_ws_'+bash_script_name.replace('CHANNEL',channel),'8nh',lxbatch_jobs_submitted)
+        command = 'combineTool.py -M Significance --cminDefaultMinimizerStrategy 0 --cminPreFit=1 --significance -d output/'+output_folder+''+year+'/'+channel+'/ws.root '\
+                                                      '--there --toysFrequentist  higgsCombine.Test.GenerateOnly.mH120.123456.root'
+        execute(command,usebatch,'output/'+output_folder+''+year,'significance_postfit_cr_sr'+bash_script_name.replace('CHANNEL',channel),'8nh',lxbatch_jobs_submitted)
+
+if 'significance_unblind' in globals() and  significance_unblind:
+    stamp()
+    for channel in channels_loop.split(','):
+        print 'Post-fit unblinded significance (run the maximum likelihood fit)','channel',channel;sys.stdout.flush()
+        command = 'combineTool.py -M Significance --cminDefaultMinimizerStrategy 0 --cminPreFit=1 --significance -d output/'+output_folder+''+year+'/'+channel+'/ws.root'
+        execute(command,usebatch,'output/'+output_folder+''+year,'significance_UNBLIND_'+bash_script_name.replace('CHANNEL',channel),'8nh',lxbatch_jobs_submitted)
+
+if 'diagnostic_postfit_unblinding' in globals() and  diagnostic_postfit_unblinding:
+    stamp()
+    for channel in channels_loop.split(','):
+        print 'Post-fit CR-only significance (run the maximum likelihood fit)','channel',channel;sys.stdout.flush()
+        command = 'combineTool.py -M FitDiagnostics -m 125 -d output/'+output_folder+''+year+'/'+channel+'/ws.root --there '\
+              '--cminDefaultMinimizerStrategy 0'
+        execute(command,usebatch,'output/'+output_folder+''+year,'diagnostic_postfit_unblinding_'+bash_script_name.replace('CHANNEL',channel),'8nh',lxbatch_jobs_submitted)
 
 if 'diagnostic_postfit_cr' in globals() and  diagnostic_postfit_cr:
     stamp()
     for channel in channels_loop.split(','):
         print 'Post-fit CR-only diagnostic','channel',channel;sys.stdout.flush()
-        command = 'combineTool.py -M FitDiagnostics -m 125 --cminDefaultMinimizerStrategy 0 --cminPreFit=1 -d output/'+output_folder+''+year+'/'+channel+'/ws_masked.root --there'
+        POI = channel if (not 'cmb' in channel) else 'Wln'
+        command = 'combineTool.py -M FitDiagnostics -m 125 --cminDefaultMinimizerStrategy 0 --cminPreFit=1 '\
+                                          '--setParameters '\
+                                          'mask_vhbb_Zmm_1_13TeV'+year+'=1,mask_vhbb_Zmm_2_13TeV'+year+'=1,'\
+                                          'mask_vhbb_Zee_1_13TeV'+year+'=1,mask_vhbb_Zee_2_13TeV'+year+'=1,'\
+                                          'mask_vhbb_Wen_1_13TeV'+year+'=1,mask_vhbb_Wmn_1_13TeV'+year+'=1,'\
+                                          'mask_vhbb_Znn_1_13TeV'+year+'=1 '\
+                                          '--redefineSignalPOIs SF_TT_'+POI+'_'+year+' '\
+                                          '-d output/'+output_folder+''+year+'/'+channel+'/ws_masked.root --there'
         execute(command,usebatch,'output/'+output_folder+''+year,'diagnostic_postfit_cr_'+bash_script_name.replace('CHANNEL',channel),'8nh',lxbatch_jobs_submitted)
+
 
 if 'diagnostic_postfit_cr_sr_blind' in globals() and  diagnostic_postfit_cr_sr_blind:
     stamp()
@@ -219,7 +260,7 @@ if 'diagnostic_postfit_cr_sr_blind' in globals() and  diagnostic_postfit_cr_sr_b
         print 'Post-fit CR+SR (blind) significance (run the maximum likelihood fit)','channel',channel;sys.stdout.flush()
         POI = channel if (not 'cmb' in channel) else 'Wln'
         if channel == 'Zll': POI = POI.replace('Zll','high_Zll')
-        command = 'combineTool.py -M FitDiagnostics -m 125 -d output/'+output_folder+''+year+'/'+channel+'/ws.root --there --cminDefaultMinimizerStrategy 0 --redefineSignalPOIs SF_TT_'+POI+'_'+year+' --freezeParameters r --setParameters r=1'
+        command = 'combineTool.py -M FitDiagnostics -m 125 -d output/'+output_folder+''+year+'/'+channel+'/ws.root --there --cminDefaultMinimizerStrategy 0 --redefineSignalPOIs SF_TT_'+POI+"_"+year
         execute(command,usebatch,'output/'+output_folder+''+year,'significance_postfit_crsr_'+bash_script_name.replace('CHANNEL',channel),'8nh',lxbatch_jobs_submitted)
 
 if usebatch: check_running(lxbatch_jobs_submitted)
@@ -235,22 +276,35 @@ if 'dump_diagnostic_overconstraints_cr' in globals() and  dump_diagnostic_overco
                                                   'output/'+output_folder+''+year+'/'+channel+'_diffNuisances.htm'
         execute(command,False,'output/'+output_folder+''+year,'dump_diagnostic_postfit_cr_'+bash_script_name.replace('CHANNEL',channel),queue,lxbatch_jobs_submitted)
 
-if 'dump_diagnostic_overconstraints_cr_sr' in globals() and  dump_diagnostic_overconstraints_cr_sr:
+if 'dump_diagnostic_overconstraints_cr_sr_blind' in globals() and  dump_diagnostic_overconstraints_cr_sr_blind:
     stamp()
     for channel in channels_loop.split(','):
         print 'Dump over-constrained nuisances','channel',channel;sys.stdout.flush()
         f = ROOT.TFile('output/'+output_folder+''+year+'/'+channel+'/fitDiagnostics.Test.root')
         fit_b = f.Get('fit_b')
-        'significance_postfit_crsr_'+bash_script_name.replace('CHANNEL',channel),
         fit_b.Print() 
         command = 'python diffNuisances.py -f html output/'+output_folder+''+year+'/'+channel+'/fitDiagnostics.Test.root > '\
                                                   'output/'+output_folder+''+year+'/'+channel+'_diffNuisances.htm'
-        execute(command,False,'output/'+output_folder+''+year,'dump_diagnostic_postfit_crsr_'+bash_script_name.replace('CHANNEL',channel),queue,lxbatch_jobs_submitted)
+        execute(command,False,'output/'+output_folder+''+year,'dump_diagnostic_overconstraints_cr_sr_blind_'+bash_script_name.replace('CHANNEL',channel),queue,lxbatch_jobs_submitted)
+
+if 'dump_diagnostic_overconstraints_unblinding' in globals() and  dump_diagnostic_overconstraints_unblinding:
+    stamp()
+    for channel in channels_loop.split(','):
+        print 'Dump over-constrained nuisances','channel',channel;sys.stdout.flush()
+        f = ROOT.TFile('output/'+output_folder+''+year+'/'+channel+'/fitDiagnostics.Test.root')
+        fit_s = f.Get('fit_s')
+        fit_s.Print() 
+        command = 'python diffNuisances.py -f html output/'+output_folder+''+year+'/'+channel+'/fitDiagnostics.Test.root > '\
+                                                  'output/'+output_folder+''+year+'/'+channel+'_diffNuisances.htm'
+        execute(command,False,'output/'+output_folder+''+year,'dump_diagnostic_overconstraints_cr_sr_unblinded_'+bash_script_name.replace('CHANNEL',channel),queue,lxbatch_jobs_submitted)
+
 
 if 'copy_to_web' in globals() and copy_to_web:
     if not os.path.exists(web_folder+'/'+output_folder+''+year):
         os.makedirs(web_folder+'/'+output_folder+''+year)
     os.system('cp output/'+output_folder+''+year+'/* '+web_folder+'/'+output_folder+''+year)
+    os.system('cp output/'+output_folder+''+year+'/cmb/ws.root '+web_folder+'/'+output_folder+''+year+'/ws_cmb.root')
+    os.system('cp output/'+output_folder+''+year+'/cmb/fitDiagnostics.Test.root '+web_folder+'/'+output_folder+''+year+'/fitDiagnostics.Test_cmb.root')
     os.system('cp scripts/index.php '+web_folder+'/'+output_folder+''+year)
     print 'output copied to '+web_folder+'/'+output_folder+''+year,'accessible through https://'+os.getlogin()+'.web.cern.ch/'+os.getlogin()+'/'+web_folder.split('www')[1]+'/'+output_folder+''+year
     
