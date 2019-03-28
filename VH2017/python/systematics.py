@@ -284,9 +284,6 @@ def AddSystematics2017(cb):
   cb.cp().AddSyst(cb,'CMS_res_j_13TeV','shape',ch.SystMap()(1.0))
   cb.cp().AddSyst(cb,'CMS_res_j_reg_13TeV','shape',ch.SystMap()(1.0))
   
-  ## TEST
-  #cb.cp().AddSyst(cb,'CMS_vhbb_res_j_reg_13TeV','shape',ch.SystMap()(1.0))
- 
   # inclusive in pt/eta
   # cb.cp().AddSyst(cb,'CMS_scale_j_13TeV','shape',ch.SystMap()(1.0))
   # cb.FilterSysts(lambda x: (x.bin_id()==2 or x.bin_id()==1) and x.name()=='CMS_scale_j_13TeV')
