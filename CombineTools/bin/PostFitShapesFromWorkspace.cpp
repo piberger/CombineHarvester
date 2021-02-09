@@ -40,11 +40,13 @@ int main(int argc, char* argv[]) {
   bool factors      = false;
   unsigned samples  = 500;
   std::string freeze_arg = "";
+  std::string bins_arg = "";
   bool covariance   = false;
   string data       = "data_obs";
   bool skip_prefit  = false;
   bool skip_proc_errs = false;
   bool total_shapes = false;
+  bool skip_uncertainties = false;
   std::vector<std::string> reverse_bins_;
 
   po::options_description help_config("Help");
@@ -87,6 +89,9 @@ int main(int argc, char* argv[]) {
     ("freeze",
       po::value<string>(&freeze_arg)->default_value(freeze_arg),
       "Format PARAM1,PARAM2=X,PARAM3=Y where the values X and Y are optional")
+    ("bins",
+      po::value<string>(&bins_arg)->default_value(bins_arg),
+      "Format BIN1,BIN2,BIN3,...")
     ("covariance",
       po::value<bool>(&covariance)->default_value(covariance)->implicit_value(true),
       "Save the covariance and correlation matrices of the process yields")
@@ -96,6 +101,9 @@ int main(int argc, char* argv[]) {
     ("skip-proc-errs",
       po::value<bool>(&skip_proc_errs)->default_value(skip_proc_errs)->implicit_value(true),
       "Skip evaluation of errors on individual processes")
+    ("skip-uncertainties",
+      po::value<bool>(&skip_uncertainties)->default_value(skip_uncertainties)->implicit_value(true),
+      "Skip uncertainties")
     ("total-shapes",
       po::value<bool>(&total_shapes)->default_value(total_shapes)->implicit_value(true),
       "Save signal- and background shapes added for all channels/categories")
@@ -182,7 +190,21 @@ int main(int argc, char* argv[]) {
     return no_shape;
   });
 
-  auto bins = cmb.cp().bin_set();
+  auto bins = set(cmb.cp().bin_set());
+
+  if(bins_arg.size() > 0){
+    vector<string> bins_vec;
+    bins.clear();
+    boost::split(bins_vec, bins_arg, boost::is_any_of(","));
+    for (auto el: bins_vec) {
+        bins.insert(el);
+    }
+  }
+  cout << "make shapes for bins:"<<endl;
+  for (auto el: bins){
+      cout << "-" << el << endl;
+  }
+
 
   TFile outfile(output.c_str(), "RECREATE");
   TH1::AddDirectory(false);
@@ -202,15 +224,28 @@ int main(int argc, char* argv[]) {
     if(total_shapes){
       pre_shapes_tot["data_obs"] = cmb.GetObservedShape();
       // Then fill total signal and total bkg hists
-      std::cout << ">> Doing prefit: TotalBkg" << std::endl;
-      pre_shapes_tot["TotalBkg"] =
-          cmb.cp().backgrounds().GetShapeWithUncertainty();
-      std::cout << ">> Doing prefit: TotalSig" << std::endl;
-      pre_shapes_tot["TotalSig"] =
-          cmb.cp().signals().GetShapeWithUncertainty();
-      std::cout << ">> Doing prefit: TotalProcs" << std::endl;
-      pre_shapes_tot["TotalProcs"] =
-          cmb.cp().GetShapeWithUncertainty();
+      if (skip_uncertainties) {
+        std::cout << ">> Doing prefit (no uncertainties): TotalBkg" << std::endl;
+          pre_shapes_tot["TotalBkg"] =
+              cmb.cp().backgrounds().GetShape();
+          std::cout << ">> Doing prefit (no uncertainties): TotalSig" << std::endl;
+          pre_shapes_tot["TotalSig"] =
+              cmb.cp().signals().GetShape();
+          std::cout << ">> Doing prefit (no uncertainties): TotalProcs" << std::endl;
+          pre_shapes_tot["TotalProcs"] =
+              cmb.cp().GetShape();
+
+      } else {
+        std::cout << ">> Doing prefit: TotalBkg" << std::endl;
+          pre_shapes_tot["TotalBkg"] =
+              cmb.cp().backgrounds().GetShapeWithUncertainty();
+          std::cout << ">> Doing prefit: TotalSig" << std::endl;
+          pre_shapes_tot["TotalSig"] =
+              cmb.cp().signals().GetShapeWithUncertainty();
+          std::cout << ">> Doing prefit: TotalProcs" << std::endl;
+          pre_shapes_tot["TotalProcs"] =
+              cmb.cp().GetShapeWithUncertainty();
+      }
 
       if (datacard != "") {
         TH1F ref = cmb_card.cp().GetObservedShape();
@@ -235,17 +270,29 @@ int main(int argc, char* argv[]) {
       // Fill the data and process histograms
       pre_shapes[bin]["data_obs"] = cmb_bin.GetObservedShape();
       for (auto proc : cmb_bin.process_set()) {
-        std::cout << ">> Doing prefit: " << bin << "," << proc << std::endl;
         if (skip_proc_errs) {
+          std::cout << ">> Doing prefit (no uncertainties): " << bin << "," << proc << std::endl;
           pre_shapes[bin][proc] =
               cmb_bin.cp().process({proc}).GetShape();
         } else {
+          std::cout << ">> Doing prefit: " << bin << "," << proc << std::endl;
           pre_shapes[bin][proc] =
               cmb_bin.cp().process({proc}).GetShapeWithUncertainty();
         }
       }
 
       // The fill total signal and total bkg hists
+      if (skip_uncertainties) {
+      std::cout << ">> Doing prefit (no uncertainties): " << bin << "," << "TotalBkg" << std::endl;
+      pre_shapes[bin]["TotalBkg"] =
+          cmb_bin.cp().backgrounds().GetShape();
+      std::cout << ">> Doing prefit (no uncertainties): " << bin << "," << "TotalSig" << std::endl;
+      pre_shapes[bin]["TotalSig"] =
+          cmb_bin.cp().signals().GetShape();
+      std::cout << ">> Doing prefit (no uncertainties): " << bin << "," << "TotalProcs" << std::endl;
+      pre_shapes[bin]["TotalProcs"] =
+          cmb_bin.cp().GetShape();
+      } else {
       std::cout << ">> Doing prefit: " << bin << "," << "TotalBkg" << std::endl;
       pre_shapes[bin]["TotalBkg"] =
           cmb_bin.cp().backgrounds().GetShapeWithUncertainty();
@@ -255,6 +302,7 @@ int main(int argc, char* argv[]) {
       std::cout << ">> Doing prefit: " << bin << "," << "TotalProcs" << std::endl;
       pre_shapes[bin]["TotalProcs"] =
           cmb_bin.cp().GetShapeWithUncertainty();
+      }
 
 
       if (datacard != "") {
